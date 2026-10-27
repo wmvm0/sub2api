@@ -494,6 +494,22 @@ export default {
 
     // Users Management
     users: {
+      inviterBinding: {
+        "title": "邀请人设置",
+        "hint": "仅允许绑定一次，保存后不可更换。不会补发历史兑换的返佣，也不会修改返佣开关或比例。",
+        "bound": "该用户已绑定邀请人，不能更换。",
+        "search": "搜索邀请人的邮箱或用户名",
+        "searchButton": "搜索",
+        "select": "请选择邀请人",
+        "empty": "没有匹配的用户，请更换关键词。",
+        "confirm": "我确认邀请人选择正确，绑定后不可修改",
+        "save": "确认绑定",
+        "success": "邀请人绑定成功",
+        "failed": "操作失败，请重试",
+        "conflict": "该用户已被绑定，请关闭并重新打开查看。",
+        "invalid": "邀请人无效、已停用，或会形成循环邀请，请重新选择。",
+        "loading": "加载中…"
+},
       title: '用户管理',
       description: '管理用户账户和权限',
       createUser: '创建用户',

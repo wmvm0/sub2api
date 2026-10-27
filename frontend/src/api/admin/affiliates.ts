@@ -280,3 +280,16 @@ export const affiliatesAPI = {
 }
 
 export default affiliatesAPI
+
+// Data Zone extension: immutable admin inviter binding.
+export interface UserInviterBinding {
+  user_id: number
+  inviter: SimpleUser | null
+}
+export async function getUserInviter(userId: number): Promise<UserInviterBinding> {
+  const { data } = await apiClient.get<UserInviterBinding>(`/admin/affiliates/users/${userId}/inviter`)
+  return data
+}
+export async function bindUserInviter(userId: number, inviterId: number): Promise<void> {
+  await apiClient.post(`/admin/affiliates/users/${userId}/inviter`, { inviter_id: inviterId })
+}

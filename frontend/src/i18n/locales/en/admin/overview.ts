@@ -494,6 +494,22 @@ export default {
 
     // Users
     users: {
+      inviterBinding: {
+        "title": "Inviter settings",
+        "hint": "Bind once only. The inviter cannot be replaced. No historical rebates are granted and rebate settings are unchanged.",
+        "bound": "This user already has an inviter and cannot be reassigned.",
+        "search": "Search inviter by email or username",
+        "searchButton": "Search",
+        "select": "Select an inviter",
+        "empty": "No matching users. Try another keyword.",
+        "confirm": "I confirm this inviter is correct. Binding cannot be changed.",
+        "save": "Confirm binding",
+        "success": "Inviter bound successfully",
+        "failed": "Operation failed. Please try again.",
+        "conflict": "This user was already bound. Close and reopen to see the inviter.",
+        "invalid": "The inviter is invalid, disabled, or would create a cycle. Choose another user.",
+        "loading": "Loading…"
+},
       title: 'User Management',
       description: 'Manage users and their permissions',
       createUser: 'Create User',

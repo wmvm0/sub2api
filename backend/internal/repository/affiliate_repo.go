@@ -79,6 +79,57 @@ func (r *affiliateRepository) GetAffiliateByCode(ctx context.Context, code strin
 func (r *affiliateRepository) BindInviter(ctx context.Context, userID, inviterID int64) (bool, error) {
 	var bound bool
 	err := r.withTx(ctx, func(txCtx context.Context, txClient *dbent.Client) error {
+		// Serialize ALL binding paths (including registration) to prevent A->B
+		// and B->A from concurrently passing the ancestor check. Transaction
+		// scoped; no schema change, and no locks on unrelated balance operations.
+		if userID <= 0 || inviterID <= 0 || userID == inviterID {
+			return service.ErrAffiliateInvalidInviter
+		}
+		if _, err := txClient.ExecContext(txCtx, "SELECT pg_advisory_xact_lock(20261026, 1)"); err != nil {
+			return err
+		}
+		rows, err := txClient.QueryContext(txCtx,
+			"SELECT id FROM users WHERE id IN ($1, $2) AND deleted_at IS NULL AND (id = $1 OR status = 'active') ORDER BY id FOR SHARE", userID, inviterID)
+		if err != nil {
+			return err
+		}
+		count := 0
+		for rows.Next() {
+			count++
+		}
+		rowsErr := rows.Err()
+		rows.Close()
+		if rowsErr != nil {
+			return rowsErr
+		}
+		if count != 2 {
+			return service.ErrAffiliateInvalidInviter
+		}
+		rows, err = txClient.QueryContext(txCtx, `
+WITH RECURSIVE ancestors(user_id, inviter_id) AS (
+ SELECT user_id, inviter_id FROM user_affiliates WHERE user_id = $1
+ UNION
+ SELECT ua.user_id, ua.inviter_id FROM user_affiliates ua
+ JOIN ancestors a ON ua.user_id = a.inviter_id
+)
+SELECT EXISTS (SELECT 1 FROM ancestors WHERE user_id = $2 OR inviter_id = $2)`, inviterID, userID)
+		if err != nil {
+			return err
+		}
+		var cycle bool
+		if !rows.Next() {
+			rows.Close()
+			return fmt.Errorf("missing invitation cycle check result")
+		}
+		scanErr := rows.Scan(&cycle)
+		rows.Close()
+		if scanErr != nil {
+			return scanErr
+		}
+		if cycle {
+			return service.ErrAffiliateInvalidInviter
+		}
+
 		if _, err := ensureUserAffiliateWithClient(txCtx, txClient, userID); err != nil {
 			return err
 		}
